@@ -4,63 +4,20 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-    <RelativeLayout
-        android:id="@+id/toplayout"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#3780F8"
-        android:orientation="horizontal">
+    <LinearLayout
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    <Button
+        android:id="@+id/live"
+        android:text="直播"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
-        <ImageView
-            android:layout_marginLeft="5dp"
-            android:layout_centerVertical="true"
-            android:id="@+id/icon_back"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:scaleType="center"
-            android:src="@drawable/icon_back" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="VlcPlayer"
-            android:textColor="@android:color/white"
-            android:textSize="18sp" />
-
-    </RelativeLayout>
-    <FrameLayout
-        android:id="@+id/frame_layout"
-        android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:layout_below="@+id/toplayout"
-        android:background="@android:color/black">
-        <org.videolan.libvlc.util.VLCVideoLayout
-            android:id="@+id/video_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="false"/>
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            />
-        <TextView
-            android:id="@+id/error_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textColor="@android:color/white"
-            android:visibility="gone" />
-        <ImageView
-            android:id="@+id/full_screen"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="bottom|right"
-            android:scaleType="fitXY"
-            android:src="@drawable/full_screen" />
-    </FrameLayout>
-
+    <Button
+        android:id="@+id/vod"
+        android:text="点播"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    </LinearLayout>
 </RelativeLayout>
