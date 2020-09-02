@@ -61,6 +61,36 @@
             android:layout_gravity="bottom|right"
             android:scaleType="fitXY"
             android:src="@drawable/full_screen" />
+        <LinearLayout
+            android:id="@+id/menu"
+            android:visibility="gone"
+            android:layout_gravity="top|right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:visibility="gone"
+                android:layout_marginRight="5dp"
+                android:id="@+id/subtitle"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/subtitle" />
+            <ImageView
+                android:visibility="gone"
+                android:layout_marginRight="5dp"
+                android:id="@+id/audio"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/audio" />
+            <ImageView
+                android:id="@+id/info"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/info" />
+        </LinearLayout>
+
     </FrameLayout>
 
 </RelativeLayout>

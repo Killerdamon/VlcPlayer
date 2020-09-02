@@ -1,14 +1,19 @@
 package com.android.vlcplayer;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -20,6 +25,7 @@ import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.util.VLCVideoLayout;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class LiveActivity extends AppCompatActivity {
@@ -30,11 +36,12 @@ public class LiveActivity extends AppCompatActivity {
     private VLCVideoLayout mVideoLayout = null;
     private LibVLC mLibVLC = null;
     private MediaPlayer mMediaPlayer = null;
-
+    private Context context = this;
     private View toplayout, frame_layout;
     RelativeLayout.LayoutParams saveLayout;
+    private LinearLayout menu;
     private ProgressBar progressBar;
-    private ImageView back, full_screen;
+    private ImageView back, full_screen, info, audio, subtitle;
     private TextView error_text;
     private boolean isFullScreen;
     private int full_screen_width, full_screen_height;
@@ -98,6 +105,30 @@ public class LiveActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         error_text = findViewById(R.id.error_text);
 
+        menu = findViewById(R.id.menu);
+        info = findViewById(R.id.info);
+        info.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Utils.getVideoInfo(context, mMediaPlayer);
+            }
+        });
+        audio = findViewById(R.id.audio);
+        audio.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Utils.dialogAudio(context,  mMediaPlayer);
+            }
+        });
+
+        subtitle = findViewById(R.id.subtitle);
+        subtitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Utils.dialogSubtitle(context, mMediaPlayer);
+            }
+        });
+
         //监听播放状态
         mMediaPlayer.setEventListener(new MediaPlayer.EventListener() {
             @Override
@@ -116,6 +147,7 @@ public class LiveActivity extends AppCompatActivity {
                 }
                 else if (event.type == MediaPlayer.Event.Playing){
                     Log.d(TAG, "VLC Playing");
+                    menu.setVisibility(View.VISIBLE);
                 }
                 else if (event.type == MediaPlayer.Event.Stopped){
                     Log.d(TAG, "VLC Stopped");
@@ -134,6 +166,19 @@ public class LiveActivity extends AppCompatActivity {
                     screen_height = frame_layout.getHeight();
                     Log.d(TAG, "screen_width:" + screen_width + " screen_height:" + screen_height);
                     mMediaPlayer.setAspectRatio(screen_width + ":" + screen_height);//设置屏幕比例
+                    mMediaPlayer.record(getSDPath() + "/" + "record.mp4");
+
+                    //检查音轨
+                    if (mMediaPlayer.getAudioTracks() != null){
+                        audio.setVisibility(View.VISIBLE);
+                    }
+                    //检查字幕
+                    if (mMediaPlayer.getSpuTracks() != null){
+                        subtitle.setVisibility(View.VISIBLE);
+                    }
+                }
+                else if (event.type == MediaPlayer.Event.RecordChanged){
+                    Log.d(TAG, "VLC RecordChanged");
                 }
             }
         });
@@ -152,7 +197,7 @@ public class LiveActivity extends AppCompatActivity {
 
         mMediaPlayer.attachViews(mVideoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW);
         //mMediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
-        Uri uri = Uri.parse("https://nclive.grtn.cn/gdws/sd/live.m3u8?_upt=b35af8231598355000");//rtsp流地址或其他流地址
+        Uri uri = Uri.parse("https://nclive.grtn.cn/gdws/sd/live.m3u8?_upt=ab137ccd1598951400");//rtsp流地址或其他流地址
         //final Media media = new Media(mLibVLC, getAssets().openFd(ASSET_FILENAME));
         final Media media = new Media(mLibVLC, uri);
         //media.setHWDecoderEnabled(true, true);
@@ -168,4 +213,17 @@ public class LiveActivity extends AppCompatActivity {
         mMediaPlayer.stop();
         mMediaPlayer.detachViews();
     }
+
+    public String getSDPath(){
+        File sdDir = null;
+        boolean sdCardExist = Environment.getExternalStorageState()
+                .equals(android.os.Environment.MEDIA_MOUNTED);//判断sd卡是否存在
+        if(sdCardExist)
+        {
+            sdDir = Environment.getExternalStorageDirectory();//获取跟目录
+        }
+        Log.d(TAG, "sdDir:" + sdDir.toString());
+        return sdDir.toString();
+    }
+
 }

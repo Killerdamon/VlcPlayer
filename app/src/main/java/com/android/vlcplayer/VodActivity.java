@@ -1,5 +1,6 @@
 package com.android.vlcplayer;
 
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -40,11 +41,12 @@ public class VodActivity extends AppCompatActivity {
     private MediaPlayer mMediaPlayer = null;
     private SeekBar mProgress;
     private boolean mDragging;
-
+    private Context context = this;
+    private LinearLayout menu;
     private View toplayout, frame_layout;
     RelativeLayout.LayoutParams saveLayout;
     private ProgressBar progressBar;
-    private ImageView back, full_screen;
+    private ImageView back, full_screen, info, audio, subtitle;
     private ImageView play_pause;
     private TextView error_text, time_current, time_total;
     private boolean isFullScreen;
@@ -112,6 +114,29 @@ public class VodActivity extends AppCompatActivity {
         error_text = findViewById(R.id.error_text);
         time_current = findViewById(R.id.time_current);
         time_total = findViewById(R.id.time_total);
+        menu = findViewById(R.id.menu);
+        info = findViewById(R.id.info);
+        info.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Utils.getVideoInfo(context, mMediaPlayer);
+            }
+        });
+        audio = findViewById(R.id.audio);
+        audio.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Utils.dialogAudio(context,  mMediaPlayer);
+            }
+        });
+
+        subtitle = findViewById(R.id.subtitle);
+        subtitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Utils.dialogSubtitle(context, mMediaPlayer);
+            }
+        });
 
         //监听播放状态
         mMediaPlayer.setEventListener(new MediaPlayer.EventListener() {
@@ -130,6 +155,7 @@ public class VodActivity extends AppCompatActivity {
                 }
                 else if (event.type == MediaPlayer.Event.Playing){
                     Log.d(TAG, "VLC Playing");
+                    menu.setVisibility(View.VISIBLE);
                     //设置总时间
                     Log.d(TAG, "mMediaPlayer.getTitle()："+ mMediaPlayer.getTitle());
                     time_total.setText(stringForTime((int)mMediaPlayer.getLength()));
@@ -166,6 +192,15 @@ public class VodActivity extends AppCompatActivity {
                     screen_height = frame_layout.getHeight();
                     Log.d(TAG, "screen_width:" + screen_width + " screen_height:" + screen_height);
                     mMediaPlayer.setAspectRatio(screen_width + ":" + screen_height);//设置屏幕比例
+
+                    //检查音轨
+                    if (mMediaPlayer.getAudioTracks() != null){
+                        audio.setVisibility(View.VISIBLE);
+                    }
+                    //检查字幕
+                    if (mMediaPlayer.getSpuTracks() != null){
+                        subtitle.setVisibility(View.VISIBLE);
+                    }
                 }
                 else if (event.type == MediaPlayer.Event.ESAdded){
                     Log.d(TAG, "VLC ESAdded");
@@ -235,8 +270,11 @@ public class VodActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //Uri uri = Uri.parse("https://apd-fa177be7177f745d638e069555243fc8.v.smtcdns.com/sportsts.tc.qq.com/AjExP-RcIGnd3UWJVxXBeFX18xwwjcUhfV0yb7qgUEAw/uwMROfz2r5zCIaQXGdGnC2df644Q3LWUuLvyGY4RMhgE_3T2/G7v1TmqaQfxGYeYEkAlKsyK2pF8gEj0RXTkFhrCb-cfEu0TLVwXQMacpk-14MXba-zkaMTh-03Q1476pnS7sXo-cY4w5L8SfHX2dwyFstHGglpA8xAmk6KkJGxlnF82kwbZBpGhyInUVj_yuzAognkOoMtxvCNWkbfoCUUlfixo/a0034hfv7vg.321002.ts.m3u8?ver=4");//rtsp流地址或其他流地址
-        //final Media media = new Media(mLibVLC, uri);
+//        Uri uri = Uri.parse("");//rtsp流地址或其他流地址
+//        final Media media = new Media(mLibVLC, uri);
+//        mMediaPlayer.setMedia(media);
+//        media.release();
+//        mMediaPlayer.play();
     }
 
     @Override
