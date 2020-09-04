@@ -7,6 +7,8 @@ import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,7 +79,7 @@ public class LiveActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (isFullScreen) {
                     isFullScreen = false;
-                    mMediaPlayer.setAspectRatio(screen_width + ":" + screen_height);//设置屏幕比例
+                    mHandler.sendEmptyMessageDelayed(UPDATE_SCREEN, 100);
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN); //非全屏
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
                     toplayout.setVisibility(View.VISIBLE);
@@ -85,7 +87,7 @@ public class LiveActivity extends AppCompatActivity {
                     frame_layout.setLayoutParams(saveLayout);
                 } else {
                     isFullScreen = true;
-                    mMediaPlayer.setAspectRatio(full_screen_height+ ":" + full_screen_width);//设置屏幕比例
+                    mHandler.sendEmptyMessageDelayed(UPDATE_FULL_SCREEN, 100);
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN); //清除非全屏的flag
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //设置全屏的flag
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
@@ -161,12 +163,7 @@ public class LiveActivity extends AppCompatActivity {
                 }
                 else if (event.type == MediaPlayer.Event.Vout){
                     Log.d(TAG, "VLC Vout"+ event.getVoutCount());
-                    //frame的屏幕大小
-                    screen_width = frame_layout.getWidth();
-                    screen_height = frame_layout.getHeight();
-                    Log.d(TAG, "screen_width:" + screen_width + " screen_height:" + screen_height);
-                    mMediaPlayer.setAspectRatio(screen_width + ":" + screen_height);//设置屏幕比例
-                    mMediaPlayer.record(getSDPath() + "/" + "record.mp4");
+                    mHandler.sendEmptyMessageDelayed(UPDATE_SCREEN, 1000);
 
                     //检查音轨
                     if (mMediaPlayer.getAudioTracks() != null){
@@ -196,8 +193,8 @@ public class LiveActivity extends AppCompatActivity {
         super.onStart();
 
         mMediaPlayer.attachViews(mVideoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW);
-        //mMediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
-        Uri uri = Uri.parse("https://nclive.grtn.cn/gdws/sd/live.m3u8?_upt=ab137ccd1598951400");//rtsp流地址或其他流地址
+        mMediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
+        Uri uri = Uri.parse("");//rtsp流地址或其他流地址
         //final Media media = new Media(mLibVLC, getAssets().openFd(ASSET_FILENAME));
         final Media media = new Media(mLibVLC, uri);
         //media.setHWDecoderEnabled(true, true);
@@ -225,5 +222,31 @@ public class LiveActivity extends AppCompatActivity {
         Log.d(TAG, "sdDir:" + sdDir.toString());
         return sdDir.toString();
     }
+
+    private final int UPDATE_SCREEN = 0;
+    private final int UPDATE_FULL_SCREEN = 1;
+    private Handler mHandler = new Handler(new Handler.Callback() {
+
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case UPDATE_SCREEN:
+                    //frame的屏幕大小
+                    screen_width = frame_layout.getWidth();
+                    screen_height = frame_layout.getHeight();
+                    Log.d(TAG, "screen_width:" + screen_width + " screen_height:" + screen_height);
+                    mMediaPlayer.getVLCVout().setWindowSize(screen_width, screen_height);
+                    mMediaPlayer.setAspectRatio(screen_width + ":" + screen_height);//设置屏幕比例
+                    mMediaPlayer.setScale(0);
+                    break;
+                case UPDATE_FULL_SCREEN:
+                    mMediaPlayer.getVLCVout().setWindowSize(full_screen_height, full_screen_width);
+                    mMediaPlayer.setAspectRatio(full_screen_height + ":" + full_screen_width);//设置屏幕比例
+                    mMediaPlayer.setScale(0);
+                    break;
+            }
+            return false;
+        }
+    });
 
 }

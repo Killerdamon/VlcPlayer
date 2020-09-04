@@ -85,7 +85,7 @@ public class VodActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (isFullScreen) {
                     isFullScreen = false;
-                    mMediaPlayer.setAspectRatio(screen_width + ":" + screen_height);//设置屏幕比例
+                    mHandler.sendEmptyMessageDelayed(UPDATE_SCREEN, 100);
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN); //非全屏
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//竖屏
                     toplayout.setVisibility(View.VISIBLE);
@@ -93,7 +93,7 @@ public class VodActivity extends AppCompatActivity {
                     frame_layout.setLayoutParams(saveLayout);
                 } else {
                     isFullScreen = true;
-                    mMediaPlayer.setAspectRatio(full_screen_height+ ":" + full_screen_width);//设置屏幕比例
+                    mHandler.sendEmptyMessageDelayed(UPDATE_FULL_SCREEN, 100);
                     getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN); //清除非全屏的flag
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //设置全屏的flag
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
@@ -187,12 +187,6 @@ public class VodActivity extends AppCompatActivity {
                 }
                 else if (event.type == MediaPlayer.Event.Vout){
                     Log.d(TAG, "VLC Vout"+ event.getVoutCount());
-                    //frame的屏幕大小
-                    screen_width = frame_layout.getWidth();
-                    screen_height = frame_layout.getHeight();
-                    Log.d(TAG, "screen_width:" + screen_width + " screen_height:" + screen_height);
-                    mMediaPlayer.setAspectRatio(screen_width + ":" + screen_height);//设置屏幕比例
-
                     //检查音轨
                     if (mMediaPlayer.getAudioTracks() != null){
                         audio.setVisibility(View.VISIBLE);
@@ -319,4 +313,30 @@ public class VodActivity extends AppCompatActivity {
             mDragging = false;
         }
     };
+
+    private final int UPDATE_SCREEN = 0;
+    private final int UPDATE_FULL_SCREEN = 1;
+    private Handler mHandler = new Handler(new Handler.Callback() {
+
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case UPDATE_SCREEN:
+                    //frame的屏幕大小
+                    screen_width = frame_layout.getWidth();
+                    screen_height = frame_layout.getHeight();
+                    Log.d(TAG, "screen_width:" + screen_width + " screen_height:" + screen_height);
+                    mMediaPlayer.getVLCVout().setWindowSize(screen_width, screen_height);
+                    mMediaPlayer.setAspectRatio(screen_width + ":" + screen_height);//设置屏幕比例
+                    mMediaPlayer.setScale(0);
+                    break;
+                case UPDATE_FULL_SCREEN:
+                    mMediaPlayer.getVLCVout().setWindowSize(full_screen_height, full_screen_width);
+                    mMediaPlayer.setAspectRatio(full_screen_height + ":" + full_screen_width);//设置屏幕比例
+                    mMediaPlayer.setScale(0);
+                    break;
+            }
+            return false;
+        }
+    });
 }

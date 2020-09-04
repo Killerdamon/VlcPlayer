@@ -7,7 +7,6 @@ import android.util.Log;
 
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
-import org.videolan.libvlc.interfaces.IMedia;
 
 public class Utils {
     public static String TAG = "Utils";
