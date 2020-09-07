@@ -195,6 +195,7 @@ public class VodActivity extends AppCompatActivity {
                     if (mMediaPlayer.getSpuTracks() != null){
                         subtitle.setVisibility(View.VISIBLE);
                     }
+                    mHandler.sendEmptyMessageDelayed(UPDATE_SCREEN, 100);
                 }
                 else if (event.type == MediaPlayer.Event.ESAdded){
                     Log.d(TAG, "VLC ESAdded");

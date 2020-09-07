@@ -163,7 +163,7 @@ public class LiveActivity extends AppCompatActivity {
                 }
                 else if (event.type == MediaPlayer.Event.Vout){
                     Log.d(TAG, "VLC Vout"+ event.getVoutCount());
-                    mHandler.sendEmptyMessageDelayed(UPDATE_SCREEN, 1000);
+                    mHandler.sendEmptyMessageDelayed(UPDATE_SCREEN, 100);
 
                     //检查音轨
                     if (mMediaPlayer.getAudioTracks() != null){
