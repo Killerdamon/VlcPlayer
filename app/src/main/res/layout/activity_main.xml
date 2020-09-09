@@ -10,13 +10,13 @@
         android:layout_height="wrap_content">
     <Button
         android:id="@+id/live"
-        android:text="直播"
+        android:text="直播+截屏+录制"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/vod"
-        android:text="点播"
+        android:text="点播+本地播放"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
     </LinearLayout>

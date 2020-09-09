@@ -35,6 +35,13 @@
         android:layout_height="250dp"
         android:layout_below="@+id/toplayout"
         android:background="@android:color/black">
+
+        <org.videolan.libvlc.util.VLCVideoLayout
+            android:id="@+id/video_layout_back"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="false"/>
+
         <org.videolan.libvlc.util.VLCVideoLayout
             android:id="@+id/video_layout"
             android:layout_width="match_parent"
@@ -67,6 +74,22 @@
             android:layout_gravity="top|right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
+            <ImageView
+                android:visibility="gone"
+                android:layout_marginRight="5dp"
+                android:id="@+id/snapshot"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/snapshot" />
+            <ImageView
+                android:visibility="gone"
+                android:layout_marginRight="5dp"
+                android:id="@+id/record"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/record" />
             <ImageView
                 android:visibility="gone"
                 android:layout_marginRight="5dp"

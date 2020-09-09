@@ -3,10 +3,13 @@ package com.android.vlcplayer;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Environment;
 import android.util.Log;
 
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
+
+import java.io.File;
 
 public class Utils {
     public static String TAG = "Utils";
@@ -99,5 +102,17 @@ public class Utils {
             }
         });
         dialogAudio.show();
+    }
+
+    public static String getSDPath(){
+        File sdDir = null;
+        boolean sdCardExist = Environment.getExternalStorageState()
+                .equals(android.os.Environment.MEDIA_MOUNTED);//判断sd卡是否存在
+        if(sdCardExist)
+        {
+            sdDir = Environment.getExternalStorageDirectory();//获取跟目录
+        }
+        Log.d(TAG, "sdDir:" + sdDir.toString());
+        return sdDir.toString();
     }
 }

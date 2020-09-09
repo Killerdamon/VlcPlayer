@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -43,9 +44,9 @@ public class LiveActivity extends AppCompatActivity {
     RelativeLayout.LayoutParams saveLayout;
     private LinearLayout menu;
     private ProgressBar progressBar;
-    private ImageView back, full_screen, info, audio, subtitle;
+    private ImageView back, full_screen, info, audio, subtitle, snapshot, record;
     private TextView error_text;
-    private boolean isFullScreen;
+    private boolean isFullScreen, isRecord = false;
     private int full_screen_width, full_screen_height;
     private int screen_width, screen_height;
 
@@ -122,12 +123,44 @@ public class LiveActivity extends AppCompatActivity {
                 Utils.dialogAudio(context,  mMediaPlayer);
             }
         });
-
         subtitle = findViewById(R.id.subtitle);
         subtitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Utils.dialogSubtitle(context, mMediaPlayer);
+            }
+        });
+
+        snapshot = findViewById(R.id.snapshot);
+        snapshot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mMediaPlayer.takeSnapShot(0, Utils.getSDPath(), 0, 0)) {
+                    Toast.makeText(LiveActivity.this, "截图成功", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(LiveActivity.this, "截图失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        record = findViewById(R.id.record);
+        record.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!isRecord) {
+                    if (mMediaPlayer.record(Utils.getSDPath())) {
+                        Toast.makeText(LiveActivity.this, "录制开始", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        Toast.makeText(LiveActivity.this, "录制失败", Toast.LENGTH_SHORT).show();
+                    }
+                    isRecord = true;
+                }
+                else {
+                    Toast.makeText(LiveActivity.this, "录制结束", Toast.LENGTH_SHORT).show();
+                    isRecord = false;
+                    finish();
+                }
             }
         });
 
@@ -173,6 +206,8 @@ public class LiveActivity extends AppCompatActivity {
                     if (mMediaPlayer.getSpuTracks() != null){
                         subtitle.setVisibility(View.VISIBLE);
                     }
+                    snapshot.setVisibility(View.VISIBLE);
+                    record.setVisibility(View.VISIBLE);
                 }
                 else if (event.type == MediaPlayer.Event.RecordChanged){
                     Log.d(TAG, "VLC RecordChanged");
@@ -194,10 +229,10 @@ public class LiveActivity extends AppCompatActivity {
 
         mMediaPlayer.attachViews(mVideoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW);
         mMediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
-        Uri uri = Uri.parse("");//rtsp流地址或其他流地址
+        Uri uri = Uri.parse("https://nclive.grtn.cn/gdws/sd/live.m3u8?_upt=f1ae9de51599655200");//rtsp流地址或其他流地址
         //final Media media = new Media(mLibVLC, getAssets().openFd(ASSET_FILENAME));
         final Media media = new Media(mLibVLC, uri);
-        //media.setHWDecoderEnabled(true, true);
+        media.setHWDecoderEnabled(false, false);//设置后才可以录制和截屏
         mMediaPlayer.setMedia(media);
         media.release();
         mMediaPlayer.play();
@@ -209,18 +244,6 @@ public class LiveActivity extends AppCompatActivity {
 
         mMediaPlayer.stop();
         mMediaPlayer.detachViews();
-    }
-
-    public String getSDPath(){
-        File sdDir = null;
-        boolean sdCardExist = Environment.getExternalStorageState()
-                .equals(android.os.Environment.MEDIA_MOUNTED);//判断sd卡是否存在
-        if(sdCardExist)
-        {
-            sdDir = Environment.getExternalStorageDirectory();//获取跟目录
-        }
-        Log.d(TAG, "sdDir:" + sdDir.toString());
-        return sdDir.toString();
     }
 
     private final int UPDATE_SCREEN = 0;

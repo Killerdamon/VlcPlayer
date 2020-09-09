@@ -487,8 +487,8 @@ public class Media extends VLCObject<IMedia.Event> implements IMedia {
 
             addOption(sb.toString());
         }
-        else if (!enabled) /* LibVLC >= 4.0 */
-            addOption(":no-hw-dec");
+        else if (!enabled) ;/* LibVLC >= 4.0 */
+            //addOption(":no-hw-dec");
     }
 
     /**

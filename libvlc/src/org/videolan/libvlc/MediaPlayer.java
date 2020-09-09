@@ -866,6 +866,12 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
         return mAudioOutput != null && mAudioOutput.equals("android_audiotrack");
     }
 
+    public boolean takeSnapShot(int number, String path, int width, int height) {
+        return nativeTakeSnapShot(number, path, width, height);
+    }
+
+
+
     /**
      * Update the video viewpoint information
      *
@@ -1440,4 +1446,5 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     private native boolean nativeAddSlave(int type, String location, boolean select);
     private native boolean nativeRecord(String directory);
     private native boolean nativeSetEqualizer(Equalizer equalizer);
+    private native boolean nativeTakeSnapShot(int number, String path, int width, int height);
 }
