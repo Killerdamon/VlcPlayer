@@ -1,7 +1,7 @@
 # VlcPlayer
 
 #### 介绍
-基于libvlc aar的android播放器实例
+基于libvlc的android播放器实例
 
 #### 使用说明
 
