@@ -155,11 +155,14 @@ public class LiveActivity extends AppCompatActivity {
                         Toast.makeText(LiveActivity.this, "录制失败", Toast.LENGTH_SHORT).show();
                     }
                     isRecord = true;
+                    record.setImageResource(R.drawable.recording);
                 }
                 else {
+                    mMediaPlayer.record(null);
                     Toast.makeText(LiveActivity.this, "录制结束", Toast.LENGTH_SHORT).show();
                     isRecord = false;
-                    finish();
+                    //finish();
+                    record.setImageResource(R.drawable.record);
                 }
             }
         });
@@ -229,7 +232,7 @@ public class LiveActivity extends AppCompatActivity {
 
         mMediaPlayer.attachViews(mVideoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW);
         mMediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
-        Uri uri = Uri.parse("https://nclive.grtn.cn/gdws/sd/live.m3u8?_upt=f1ae9de51599655200");//rtsp流地址或其他流地址
+        Uri uri = Uri.parse("https://nclive.grtn.cn/gdws/sd/live.m3u8?_upt=051761c31599715809");//rtsp流地址或其他流地址
         //final Media media = new Media(mLibVLC, getAssets().openFd(ASSET_FILENAME));
         final Media media = new Media(mLibVLC, uri);
         media.setHWDecoderEnabled(false, false);//设置后才可以录制和截屏
