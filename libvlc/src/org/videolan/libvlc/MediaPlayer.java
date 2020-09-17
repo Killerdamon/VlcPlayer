@@ -53,6 +53,7 @@ import org.videolan.libvlc.util.VLCVideoLayout;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 @SuppressWarnings("unused, JniMissingFunction")
 public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
@@ -1407,6 +1408,29 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     public boolean canDoPassthrough() {
         return mCanDoPassthrough;
+    }
+
+    public void setVideoFormat(String format, int width, int height, int pitch){
+        nativeSetVideoFormat(format, width, height, pitch);
+    }
+
+    private native void nativeSetVideoFormat(String format, int width, int height, int pitch);
+
+    private ByteBuffer mBuffer;
+    private MediaPlayCallback mCallback;
+
+    public void setVideoCallback(ByteBuffer buffer, MediaPlayCallback callback) {
+        mBuffer = buffer;
+        mCallback = callback;
+        nativeSetVideoBuffer(buffer);
+    }
+
+    private native void nativeSetVideoBuffer(ByteBuffer buffer);
+
+    private void onDisplay() {
+        if (mCallback != null) {
+            mCallback.onDisplay(mBuffer);
+        }
     }
 
     /* JNI */

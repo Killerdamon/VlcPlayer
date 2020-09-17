@@ -1,12 +1,9 @@
 package com.android.vlcplayer;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
-import android.net.Uri;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -18,44 +15,58 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
+import org.videolan.libvlc.MediaPlayCallback;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.util.VLCVideoLayout;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.Locale;
 
-public class LiveActivity extends AppCompatActivity {
+public class FrameActivity extends AppCompatActivity {
 
-    private String TAG = "LiveActivity";
+    private String TAG = "VodActivity";
     private static final boolean USE_TEXTURE_VIEW = false;
     private static final boolean ENABLE_SUBTITLES = true;
     private VLCVideoLayout mVideoLayout = null;
     private LibVLC mLibVLC = null;
     private MediaPlayer mMediaPlayer = null;
+    private SeekBar mProgress;
+    private boolean mDragging;
     private Context context = this;
+    private LinearLayout menu;
     private View toplayout, frame_layout;
     RelativeLayout.LayoutParams saveLayout;
-    private LinearLayout menu;
     private ProgressBar progressBar;
-    private ImageView back, full_screen, info, audio, subtitle, snapshot, record;
-    private TextView error_text;
-    private boolean isFullScreen, isRecord = false;
+    private ImageView back, full_screen, info;
+    private ImageView play_pause, img;
+    private TextView error_text, time_current, time_total;
+    private boolean isFullScreen;
     private int full_screen_width, full_screen_height;
     private int screen_width, screen_height;
+    private static final String ASSET_FILENAME = "bbb.m4v";
+    private final int FRM_WIDTH = 500;
+    private final int FRM_HEIGHT = 400;
+    private final int PIXEL_SIZE = 4;
+
+    private StringBuilder mFormatBuilder;
+    private Formatter mFormatter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_live);
+        setContentView(R.layout.activity_frame);
 
         //全屏大小
         full_screen_width = getResources().getDisplayMetrics().widthPixels;
@@ -64,9 +75,7 @@ public class LiveActivity extends AppCompatActivity {
 
         final ArrayList<String> args = new ArrayList<>();//VLC参数
         args.add("--rtsp-tcp");//强制rtsp-tcp，加快加载视频速度
-        args.add("--live-caching=0");
-        args.add("--file-caching=0");
-        args.add("--network-caching=0");//增加实时性，延时大概2-3秒
+
         mLibVLC = new LibVLC(this, args);
         mMediaPlayer = new MediaPlayer(mLibVLC);
         mVideoLayout = findViewById(R.id.video_layout);
@@ -107,7 +116,8 @@ public class LiveActivity extends AppCompatActivity {
         });
         progressBar = findViewById(R.id.progressBar);
         error_text = findViewById(R.id.error_text);
-
+        time_current = findViewById(R.id.time_current);
+        time_total = findViewById(R.id.time_total);
         menu = findViewById(R.id.menu);
         info = findViewById(R.id.info);
         info.setOnClickListener(new View.OnClickListener() {
@@ -116,57 +126,25 @@ public class LiveActivity extends AppCompatActivity {
                 Utils.getVideoInfo(context, mMediaPlayer);
             }
         });
-        audio = findViewById(R.id.audio);
-        audio.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Utils.dialogAudio(context,  mMediaPlayer);
-            }
-        });
-        subtitle = findViewById(R.id.subtitle);
-        subtitle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Utils.dialogSubtitle(context, mMediaPlayer);
-            }
-        });
 
-        snapshot = findViewById(R.id.snapshot);
-        snapshot.setOnClickListener(new View.OnClickListener() {
+        img = findViewById(R.id.img);
+        mMediaPlayer.setVideoFormat("RGBA",FRM_WIDTH,FRM_HEIGHT,FRM_WIDTH*PIXEL_SIZE);
+        ByteBuffer frameBuffer = ByteBuffer.allocateDirect(FRM_WIDTH*FRM_HEIGHT*PIXEL_SIZE);
+        mMediaPlayer.setVideoCallback(frameBuffer, new MediaPlayCallback() {
             @Override
-            public void onClick(View view) {
-                if (mMediaPlayer.takeSnapShot(0, Utils.getSDPath(), 0, 0)) {
-                    Toast.makeText(LiveActivity.this, "截图成功", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(LiveActivity.this, "截图失败", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        record = findViewById(R.id.record);
-        record.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!isRecord) {
-                    if (mMediaPlayer.record(Utils.getSDPath())) {
-                        Toast.makeText(LiveActivity.this, "录制开始", Toast.LENGTH_SHORT).show();
+            public void onDisplay(ByteBuffer buffer) {
+                //Log.d(TAG, "buffer:" + buffer);
+                final Bitmap bitmap = Bitmap.createBitmap(FRM_WIDTH,FRM_HEIGHT, Bitmap.Config.ARGB_8888);
+                buffer.rewind();
+                bitmap.copyPixelsFromBuffer(buffer);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        img.setImageBitmap(bitmap);
                     }
-                    else {
-                        Toast.makeText(LiveActivity.this, "录制失败", Toast.LENGTH_SHORT).show();
-                    }
-                    isRecord = true;
-                    record.setImageResource(R.drawable.recording);
-                }
-                else {
-                    mMediaPlayer.record(null);
-                    Toast.makeText(LiveActivity.this, "录制结束", Toast.LENGTH_SHORT).show();
-                    isRecord = false;
-                    //finish();
-                    record.setImageResource(R.drawable.record);
-                }
+                });
             }
         });
-
         //监听播放状态
         mMediaPlayer.setEventListener(new MediaPlayer.EventListener() {
             @Override
@@ -177,19 +155,58 @@ public class LiveActivity extends AppCompatActivity {
                 }
                 else if (event.type == MediaPlayer.Event.Buffering){
                     Log.d(TAG, "VLC Buffering：" + event.getBuffering());
-                    if (event.getBuffering() >= 100){
+                    if (event.getBuffering() >= 100)
                         progressBar.setVisibility(View.GONE);
-                    }
                     else
                         progressBar.setVisibility(View.VISIBLE);
                 }
                 else if (event.type == MediaPlayer.Event.Playing){
                     Log.d(TAG, "VLC Playing");
                     menu.setVisibility(View.VISIBLE);
+                    //设置总时间
+                    Log.d(TAG, "mMediaPlayer.getTitle()："+ mMediaPlayer.getTitle());
+                    time_total.setText(stringForTime((int)mMediaPlayer.getLength()));
+                }
+                else if (event.type == MediaPlayer.Event.EndReached){
+                    Log.d(TAG, "VLC EndReached");
+                    finish();
+                }
+                else if (event.type == MediaPlayer.Event.MediaChanged){
+                    Log.d(TAG, "VLC MediaChanged");
+                }
+                else if (event.type == MediaPlayer.Event.TimeChanged){
+                    Log.d(TAG, "VLC TimeChanged："+ event.getTimeChanged());
+                    time_current.setText(stringForTime((int) event.getTimeChanged()));
+                }
+                else if (event.type == MediaPlayer.Event.PositionChanged){
+                    Log.d(TAG, "VLC PositionChanged：" + event.getPositionChanged());
+                    mProgress.setProgress((int)(event.getPositionChanged()*100));
                 }
                 else if (event.type == MediaPlayer.Event.Stopped){
                     Log.d(TAG, "VLC Stopped");
                     progressBar.setVisibility(View.GONE);
+                }
+                else if (event.type == MediaPlayer.Event.SeekableChanged){
+                    Log.d(TAG, "VLC SeekableChanged");
+                }
+                else if (event.type == MediaPlayer.Event.PausableChanged){
+                    Log.d(TAG, "VLC PausableChanged");
+                }
+                else if (event.type == MediaPlayer.Event.Vout){
+                    Log.d(TAG, "VLC Vout"+ event.getVoutCount());
+                    mHandler.sendEmptyMessageDelayed(UPDATE_SCREEN, 100);
+                }
+                else if (event.type == MediaPlayer.Event.ESAdded){
+                    Log.d(TAG, "VLC ESAdded");
+                }
+                else if (event.type == MediaPlayer.Event.ESDeleted){
+                    Log.d(TAG, "VLC ESDeleted");
+                }
+                else if (event.type == MediaPlayer.Event.ESSelected){
+                    Log.d(TAG, "VLC ESSelected");
+                }
+                else if (event.type == MediaPlayer.Event.LengthChanged){
+                    Log.d(TAG, "VLC LengthChanged"+ event.getLengthChanged());
                 }
                 else if (event.type == MediaPlayer.Event.EncounteredError){
                     Log.d(TAG, "VLC EncounteredError");
@@ -197,26 +214,33 @@ public class LiveActivity extends AppCompatActivity {
                     error_text.setVisibility(View.VISIBLE);
                     error_text.setText("播放错误");
                 }
-                else if (event.type == MediaPlayer.Event.Vout){
-                    Log.d(TAG, "VLC Vout"+ event.getVoutCount());
-                    mHandler.sendEmptyMessageDelayed(UPDATE_SCREEN, 100);
-
-                    //检查音轨
-                    if (mMediaPlayer.getAudioTracks() != null){
-                        audio.setVisibility(View.VISIBLE);
-                    }
-                    //检查字幕
-                    if (mMediaPlayer.getSpuTracks() != null){
-                        subtitle.setVisibility(View.VISIBLE);
-                    }
-                    snapshot.setVisibility(View.VISIBLE);
-                    record.setVisibility(View.VISIBLE);
+            }
+        });
+        play_pause = findViewById(R.id.play_pause);
+        play_pause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mMediaPlayer.isPlaying()){
+                    mMediaPlayer.pause();
+                    play_pause.setImageResource(R.drawable.media_pause2);
                 }
-                else if (event.type == MediaPlayer.Event.RecordChanged){
-                    Log.d(TAG, "VLC RecordChanged");
+                else {
+                    mMediaPlayer.play();
+                    play_pause.setImageResource(R.drawable.media_play);
                 }
             }
         });
+        mFormatBuilder = new StringBuilder();
+        mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
+        mProgress = (SeekBar) findViewById(R.id.mediacontroller_progress);
+        if (mProgress != null) {
+            if (mProgress instanceof SeekBar) {
+                SeekBar seeker = (SeekBar) mProgress;
+                seeker.setOnSeekBarChangeListener(mSeekListener);
+            }
+            mProgress.setMax(100);
+        }
+        mProgress.requestFocus();
     }
 
     @Override
@@ -232,13 +256,14 @@ public class LiveActivity extends AppCompatActivity {
 
         mMediaPlayer.attachViews(mVideoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW);
         mMediaPlayer.setVideoScale(MediaPlayer.ScaleType.SURFACE_BEST_FIT);
-        Uri uri = Uri.parse("rtsp://192.168.1.135:8554/1");//rtsp流地址或其他流地址
-        //final Media media = new Media(mLibVLC, getAssets().openFd(ASSET_FILENAME));
-        final Media media = new Media(mLibVLC, uri);
-        media.setHWDecoderEnabled(false, false);//设置后才可以录制和截屏
-        mMediaPlayer.setMedia(media);
-        media.release();
-        mMediaPlayer.play();
+        try {
+            final Media media = new Media(mLibVLC, getAssets().openFd(ASSET_FILENAME));
+            mMediaPlayer.setMedia(media);
+            media.release();
+            mMediaPlayer.play();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -248,6 +273,41 @@ public class LiveActivity extends AppCompatActivity {
         mMediaPlayer.stop();
         mMediaPlayer.detachViews();
     }
+
+    private String stringForTime(int timeMs) {
+        int totalSeconds = timeMs / 1000;
+
+        int seconds = totalSeconds % 60;
+        int minutes = (totalSeconds / 60) % 60;
+        int hours = totalSeconds / 3600;
+
+        mFormatBuilder.setLength(0);
+        if (hours > 0) {
+            return mFormatter.format("%d:%02d:%02d", hours, minutes, seconds)
+                    .toString();
+        } else {
+            return mFormatter.format("%02d:%02d", minutes, seconds).toString();
+        }
+    }
+
+    private SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
+        public void onStartTrackingTouch(SeekBar bar) {
+			Log.d("TAG", "onProgressChanged");
+            mDragging = true;
+        }
+
+        public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
+            if (mDragging) {
+                Log.d("TAG", "onProgressChanged:" + progress);
+                mMediaPlayer.setPosition((float) progress / 100);
+            }
+        }
+
+        public void onStopTrackingTouch(SeekBar bar) {
+			Log.d("TAG", "onStopTrackingTouch");
+            mDragging = false;
+        }
+    };
 
     private final int UPDATE_SCREEN = 0;
     private final int UPDATE_FULL_SCREEN = 1;
@@ -274,5 +334,4 @@ public class LiveActivity extends AppCompatActivity {
             return false;
         }
     });
-
 }

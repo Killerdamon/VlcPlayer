@@ -2,6 +2,7 @@ package com.android.vlcplayer;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,10 +24,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
+import org.videolan.libvlc.MediaPlayCallback;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.util.VLCVideoLayout;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.Locale;
@@ -47,7 +50,7 @@ public class VodActivity extends AppCompatActivity {
     RelativeLayout.LayoutParams saveLayout;
     private ProgressBar progressBar;
     private ImageView back, full_screen, info, audio, subtitle;
-    private ImageView play_pause;
+    private ImageView play_pause, img;
     private TextView error_text, time_current, time_total;
     private boolean isFullScreen;
     private int full_screen_width, full_screen_height;

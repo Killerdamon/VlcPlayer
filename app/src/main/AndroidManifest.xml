@@ -46,6 +46,11 @@
             android:launchMode="singleInstance"
             android:name=".VodActivity">
         </activity>
+        <activity
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="singleInstance"
+            android:name=".FrameActivity">
+        </activity>
     </application>
 
 </manifest>

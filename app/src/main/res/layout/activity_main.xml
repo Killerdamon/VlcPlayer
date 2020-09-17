@@ -19,5 +19,11 @@
         android:text="点播+本地播放"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/frame"
+        android:text="帧数据"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
     </LinearLayout>
 </RelativeLayout>
